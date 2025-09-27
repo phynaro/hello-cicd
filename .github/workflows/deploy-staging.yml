@@ -1,0 +1,26 @@
+name: deploy-staging
+
+on:
+  push:
+    branches: [ main ]
+
+env:
+  HOST: ${{ secrets.DEPLOY_HOST }}
+  USER: ${{ secrets.DEPLOY_USER }}
+  REPO_OWNER: ${{ github.repository_owner }}
+
+jobs:
+  ssh-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ env.HOST }}
+          username: ${{ env.USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script: |
+            cd /opt/hello-cicd/staging
+            export REPO_OWNER="${{ env.REPO_OWNER }}"
+            export IMAGE_SHA="${{ github.sha }}"
+            ./deploy_staging.sh
