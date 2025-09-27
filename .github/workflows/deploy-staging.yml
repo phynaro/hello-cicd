@@ -27,3 +27,12 @@ jobs:
             export REPO_OWNER="${{ env.REPO_OWNER }}"
             export IMAGE_SHA="${{ github.sha }}"
             ./deploy_staging.sh
+      - name: Save staging SHA to file
+        run: |
+          echo "${{ github.sha }}" > staging_sha.txt
+      - name: Upload staging SHA to artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: staging_sha
+          path: staging_sha.txt
+          retention-days: 14
