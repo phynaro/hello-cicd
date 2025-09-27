@@ -1,74 +1,69 @@
 name: ci
-build-and-push:
-name: Build, Scan, Push (FE & BE)
-runs-on: ubuntu-latest
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  REGISTRY: ghcr.io
+  OWNER: ${{ github.repository_owner }}
+
 permissions:
-contents: read
-packages: write # allow push to GHCR
-security-events: write # for SARIF uploads (optional)
+  contents: read
+  packages: write
+  # security-events: write  # uncomment later if you upload SARIF
 
-strategy:
-matrix:
-service: [frontend, backend]
-include:
-- service: frontend
-context: ./frontend
-image: ghcr.io/${{ github.repository_owner }}/hello-frontend
-- service: backend
-context: ./backend
-image: ghcr.io/${{ github.repository_owner }}/hello-backend
+jobs:
+  build-frontend:
+    name: Build & Push (frontend)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
 
-steps:
-- name: Checkout
-uses: actions/checkout@v4
+      - name: Set up Buildx
+      - uses: docker/setup-buildx-action@v3
 
-- name: Set up QEMU (for multi-arch, optional now)
-uses: docker/setup-qemu-action@v3
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ env.OWNER }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-- name: Set up Buildx
-uses: docker/setup-buildx-action@v3
+      - name: Build & Push
+        uses: docker/build-push-action@v6
+        with:
+          context: ./frontend
+          push: true
+          platforms: linux/amd64
+          tags: ${{ env.REGISTRY }}/${{ env.OWNER }}/hello-frontend:sha-${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
-- name: Login to GHCR
-uses: docker/login-action@v3
-with:
-registry: ghcr.io
-username: ${{ github.repository_owner }}
-password: ${{ secrets.GITHUB_TOKEN }}
+  build-backend:
+    name: Build & Push (backend)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
 
-- name: Extract metadata (tags, labels)
-id: meta
-uses: docker/metadata-action@v5
-with:
-images: ${{ matrix.image }}
-tags: |
-type=sha,prefix=sha-,format=long
-labels: |
-org.opencontainers.image.source=${{ github.repository }}
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
 
-- name: Build & Push image
-id: build
-uses: docker/build-push-action@v6
-with:
-context: ${{ matrix.context }}
-push: true
-platforms: linux/amd64 # keep single-arch for speed now
-tags: ${{ steps.meta.outputs.tags }}
-labels: ${{ steps.meta.outputs.labels }}
-cache-from: type=gha
-cache-to: type=gha,mode=max
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ env.OWNER }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-- name: Trivy scan (image)
-uses: aquasecurity/trivy-action@0.24.0
-with:
-image-ref: ${{ matrix.image }}:${{ steps.meta.outputs.version }}
-format: sarif
-output: trivy-${{ matrix.service }}.sarif
-vuln-type: "os,library"
-ignore-unfixed: true
-severity: HIGH,CRITICAL
-
-- name: Upload SARIF to GitHub Security (optional)
-uses: github/codeql-action/upload-sarif@v3
-if: always()
-with:
-sarif_file: trivy-${{ matrix.service }}.sarif
+      - name: Build & Push
+        uses: docker/build-push-action@v6
+        with:
+          context: ./backend
+          push: true
+          platforms: linux/amd64
+          tags: ${{ env.REGISTRY }}/${{ env.OWNER }}/hello-backend:sha-${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
