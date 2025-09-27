@@ -36,7 +36,7 @@ jobs:
         run: |
           INPUT_SHA="${{ github.event.inputs.sha }}"
           ART_SHA=""
-          if [[ -f sha.txt ]]; then ART_SHA="$(cat sha.txt | tr -d '\n' )"; fi
+          if [[ -f staging_sha.txt ]]; then ART_SHA="$(cat staging_sha.txt | tr -d '\n' )"; fi
 
           if [[ -n "$INPUT_SHA" ]]; then
             USE="$INPUT_SHA"
