@@ -1,8 +1,10 @@
 name: deploy-staging
 
 on:
-  push:
+  workflow_run:
+    workflows: ["ci"]
     branches: [ main ]
+    types: [completed]
 
 env:
   HOST: ${{ secrets.DEPLOY_HOST }}
@@ -12,6 +14,7 @@ env:
 jobs:
   ssh-deploy:
     runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.2.0
