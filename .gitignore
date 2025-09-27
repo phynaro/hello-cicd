@@ -1,0 +1,14 @@
+node_modules
+npm-debug.log*
+.pnpm-store
+
+.DS_Store
+.vscode/
+.idea/
+
+.env
+.env.*
+
+**/.dockerignore
+**/dist
+
