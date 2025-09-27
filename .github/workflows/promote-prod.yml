@@ -1,0 +1,33 @@
+name: promote-prod
+
+on:
+    workflow_dispatch:
+        inputs:
+            sha:
+                description: "Git commit SHA to promote"
+                required: true
+
+env:
+    HOST: ${{ secrets.DEPLOY_HOST }}
+    USER: ${{ secrets.DEPLOY_USER }}
+
+jobs:
+    deploy:
+        runs-on: ubuntu-latest
+        environment:
+            name: production # optional: add required reviewers in Environments
+        steps:
+        -   name: Deploy via SSH
+            uses: appleboy/ssh-action@v1.2.0
+            with:
+                host: ${{ env.HOST }}
+                username: ${{ env.USER }}
+                key: ${{ secrets.DEPLOY_SSH_KEY }}
+                script: |
+                    set -e
+                    cd /opt/hello-cicd/prod
+                    export REPO_OWNER="${{ github.repository_owner }}"
+                    export IMAGE_SHA="${{ inputs.sha }}"
+                    # export GHCR_TOKEN if packages are private:
+                    # export GHCR_TOKEN="${{ secrets.GHCR_TOKEN }}"
+                    ./deploy_prod.sh
