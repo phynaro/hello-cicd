@@ -9,9 +9,9 @@ on:
         default: ""
 
 env:
-  HOST: ${{ vars.HOST }}          # e.g., prod.trazor.cloud (set in Repo → Settings → Variables)
-  USER: ${{ vars.USER }}          # e.g., ubuntu
-  REPO_OWNER: ${{ github.repository_owner }}
+    HOST: ${{ secrets.DEPLOY_HOST }}
+    USER: ${{ secrets.DEPLOY_USER }}    # e.g., ubuntu
+    REPO_OWNER: ${{ github.repository_owner }}
 
 jobs:
   promote:
