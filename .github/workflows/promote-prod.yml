@@ -24,7 +24,7 @@ jobs:
         with:
           workflow: deploy-staging.yml    # or the workflow NAME if you prefer: deploy-staging
           workflow_conclusion: success
-          name: staging-sha
+          name: staging_sha
           path: .
           search_artifacts: true
           if_no_artifact_found: ignore
