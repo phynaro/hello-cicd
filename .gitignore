@@ -12,4 +12,4 @@ npm-debug.log*
 **/.dockerignore
 **/dist
 bootcamp/
-
+staging/

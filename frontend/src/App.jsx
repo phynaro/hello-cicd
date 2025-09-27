@@ -14,6 +14,7 @@ export default function App() {
       <div className="text-center p-8 rounded-2xl shadow bg-white">
         <h1 className="text-2xl font-bold">Hello CI/CD 👋</h1>
         <p className="mt-2 text-gray-700">Backend says: {message}</p>
+        <p className="mt-2 text-gray-700">Staging says: Staging is working!</p>
       </div>
     </div>
   )
