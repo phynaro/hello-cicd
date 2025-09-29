@@ -15,6 +15,7 @@ export default function App() {
         <h1 className="text-2xl font-bold">Hello CI/CD 👋</h1>
         <p className="mt-2 text-gray-700">Backend says: {message}</p>
         <p className="mt-2 text-gray-700">Staging says: Staging is working!</p>
+        <p className="mt-2 text-gray-700">Runner says: You are successful using self-hosted runners!</p>
       </div>
     </div>
   )
