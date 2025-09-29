@@ -7,32 +7,46 @@ on:
     types: [completed]
 
 env:
-  HOST: ${{ secrets.DEPLOY_HOST }}
-  USER: ${{ secrets.DEPLOY_USER }}
   REPO_OWNER: ${{ github.repository_owner }}
 
 jobs:
-  ssh-deploy:
-    runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+  deploy-frontend:
+    name: Deploy frontend (dmz)
+    runs-on: [self-hosted, FE]     # ← frontend VM labels                    # BE first (flip if you prefer FE first)
+    environment:
+      name: production                               # optional: add reviewers here
     steps:
-      - name: Deploy via SSH
-        uses: appleboy/ssh-action@v1.2.0
-        with:
-          host: ${{ env.HOST }}
-          username: ${{ env.USER }}
-          key: ${{ secrets.DEPLOY_SSH_KEY }}
-          script: |
-            cd /opt/hello-cicd/staging
-            export REPO_OWNER="${{ env.REPO_OWNER }}"
-            export IMAGE_SHA="${{ github.sha }}"
-            ./deploy_staging.sh
-      - name: Save staging SHA to file
+      - name: Pull & restart frontend
+        shell: bash
         run: |
-          echo "${{ github.sha }}" > staging_sha.txt
-      - name: Upload staging SHA to artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: staging_sha
-          path: staging_sha.txt
-          retention-days: 14
+          set -e
+          cd /opt/hello-cicd/frontend
+          export REPO_OWNER="${{ env.REPO_OWNER }}"
+          export IMAGE_SHA="${{ github.sha }}"
+          # export GHCR_TOKEN="${{ secrets.GHCR_TOKEN }}"    # if GHCR is private
+          ./deploy_frontend.sh
+# jobs:
+#   ssh-deploy:
+#     runs-on: ubuntu-latest
+#     if: ${{ github.event.workflow_run.conclusion == 'success' }}
+#     steps:
+#       - name: Deploy via SSH
+#         uses: appleboy/ssh-action@v1.2.0
+#         with:
+#           host: ${{ env.HOST }}
+#           username: ${{ env.USER }}
+#           key: ${{ secrets.DEPLOY_SSH_KEY }}
+#           script: |
+#             cd /opt/hello-cicd/staging
+#             export REPO_OWNER="${{ env.REPO_OWNER }}"
+#             export IMAGE_SHA="${{ github.sha }}"
+#             ./deploy_staging.sh
+#       - name: Save staging SHA to file
+#         run: |
+#           echo "${{ github.sha }}" > staging_sha.txt
+#       - name: Upload staging SHA to artifact
+#         uses: actions/upload-artifact@v4
+#         with:
+#           name: staging_sha
+#           path: staging_sha.txt
+#           retention-days: 14
